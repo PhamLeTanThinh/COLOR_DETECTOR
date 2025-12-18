@@ -1,0 +1,1 @@
+from .dominant_color import detect_color_name_from_crop
