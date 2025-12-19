@@ -1,64 +1,83 @@
-# Real-time Object Color Detection (YOLOv8 + Rule-based Color)
+# COLOR_DETECTOR
 
-## 📌 Overview
-This project implements a **real-time object detection and color recognition system**
-using a webcam.
+COLOR_DETECTOR is a real-time color detection system using computer vision and deep learning. It detects people in a video stream and analyzes the dominant color in the detected region.
 
-Pipeline:
-- Detect object inside a fixed **ROI (square guide)** using **YOLOv8**
-- Smooth bounding box for stable visualization
-- Crop the object region
-- Detect **dominant color** using **rule-based HSV + KMeans (no ML training required)**
+## Features
 
-The system is optimized for **real-time performance** (30–60 FPS) on consumer hardware.
+- Real-time person detection using YOLOv8.
+- Cropping and smoothing bounding boxes for robust tracking.
+- Dominant color extraction using KMeans clustering.
+- Color classification based on a predefined palette.
+- Modular design for easy extension.
 
----
+## Installation
 
-## 🎯 Features
-- Real-time object detection via webcam
-- ROI-based detection (user-guided)
-- Bounding box smoothing (EMA)
-- Robust color detection:
-  - Black / White / Gray
-  - Red, Pink, Purple
-  - Yellow, Orange, Green, Blue
-- Works with:
-  - Phones
-  - Books
-  - Tissue packs
-  - Plastic / reflective objects
-- No color dataset training required
+Install dependencies using pip:
 
----
+```bash
+pip install -r requirements.txt
+```
 
-## 🧠 Color Detection Strategy
-Color detection is **rule-based**, not ML-based:
+## Usage
 
-1. Convert crop to HSV
-2. Use **Hue-based rules** for semantic colors
-3. Use **neutral detection** for black/white/gray
-4. Use **KMeans + LAB distance** as fallback
-5. Center-crop to avoid background / hand interference
+Run the main script:
 
-This approach is:
-- Faster than ML
-- More stable under lighting changes
-- Easier to explain in Image Processing courses
+```bash
+python main.py
+```
 
----
+## DSP Pipeline Overview
 
-## 📂 Project Structure
-```text
-project/
-│
-├── main.py                     # Webcam + YOLO pipeline
-├── requirements.txt
-├── README.md
-│
-├── color/
-│   ├── __init__.py
-│   ├── dominant_color.py       # Color detection logic
-│   └── palette.py              # Reference color palette
-│
-└── models/
-    └── yolov8n.pt              # YOLOv8 model (auto-downloaded)
+1. **Video Capture**
+	- OpenCV captures frames from the camera (`cv2.VideoCapture`).
+
+2. **Object Detection**
+	- YOLOv8 model (`ultralytics.YOLO`) detects people in each frame.
+	- Bounding boxes are extracted for detected persons.
+
+3. **Bounding Box Processing**
+	- Bounding boxes are smoothed for stability (`smooth_bbox`).
+	- Cropping is performed with padding to focus on the region of interest (`crop_with_padding`).
+
+4. **Color Extraction**
+	- The cropped image is resized and converted to HSV.
+	- Pixels are filtered to remove highlights, skin, and background noise.
+	- KMeans clustering is applied to find the dominant color (`dominant_bgr_kmeans`).
+
+5. **Color Classification**
+	- The dominant color is compared to a palette in LAB color space for perceptual accuracy.
+	- The closest color name is selected from the palette.
+
+6. **Visualization**
+	- The detected bounding box and color label are drawn on the frame.
+	- The processed frame is displayed in real time.
+
+## Color Palette
+
+Supported colors (BGR):
+
+- Black, White, Gray
+- Red, Pink, Purple
+- Orange, Yellow
+- Green, Blue, Cyan
+- Brown
+
+## File Structure
+
+- `main.py`: Main pipeline and video processing.
+- `color/dominant_color.py`: Dominant color extraction logic.
+- `color/palette.py`: Color palette definitions.
+- `color/__init__.py`: Color detection interface.
+- `requirements.txt`: Python dependencies.
+
+## Requirements
+
+- ultralytics>=8.0.0
+- opencv-python>=4.8.0
+- numpy>=1.23
+- Pillow>=9.0
+
+## Notes
+
+- The YOLOv8 model file (`yolov8n.pt`) must be present in the project directory.
+- Camera index may need adjustment depending on your hardware.
